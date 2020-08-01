@@ -265,6 +265,9 @@ func (s *Store) UpdatePendingStatus(ctx context.Context, uid models.UID, status 
 		return err
 	}
 
+	//sameMacDev, err := s.store.GetDeviceByMac(ctx, device.Identity.MAC, device.TenantID)
+	//_, _ = sameMacDev, err
+
 	opts := options.Update().SetUpsert(true)
 	_, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": device.UID}, bson.M{"$set": bson.M{"status": status}}, opts)
 	if err != nil {
@@ -825,6 +828,12 @@ func (s *Store) GetRecord(ctx context.Context, uid models.UID) ([]models.Recorde
 		return nil, 0, err
 	}
 	return sessionRecord, count, nil
+}
+
+func updateUID(ctx context.Context, oldUID models.UID, newUID models.UID) error {
+	_ = s.db.Collection("sessions").updateMany(bson.M{"device_uid": oldUID}, bson.M{"device_uid": newUID})
+	_ = s.db.Collection("sessions").DeleteOne(bson.M{"uid": oldUID})
+
 }
 
 func buildFilterQuery(filters []models.Filter) ([]bson.M, error) {

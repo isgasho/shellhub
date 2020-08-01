@@ -85,5 +85,14 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, uid models.UID, online
 }
 
 func (s *service) UpdatePendingStatus(ctx context.Context, uid models.UID, status string) error {
+	device, err := s.store.GetDeviceByUID(ctx, uid)
+	_ = err
+	sameMacDev, err := s.store.GetDeviceByMac(ctx, device.Identity.MAC, device.TenantID)
+	_, _ = sameMacDev, err
+	if sameMacDev != nil && sameMacDev.UID != device.UID {
+		err := s.store.UpdateUID(ctx, sameMacDev.UID, device.UID)
+		_ = err
+
+	}
 	return s.store.UpdatePendingStatus(ctx, uid, status)
 }
